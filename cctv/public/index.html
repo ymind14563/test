@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>ITS CCTV 스트리밍</title>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    /* video { width: 380px; height: 260px; border: 1px solid #ccc; background: black; margin-bottom: 30px; } */
+    
+    body { font-family: sans-serif; padding: 20px; }
+    #videos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    video {
+        width: 320px;
+        height: 210px;
+        border: 1px solid #ccc;
+        background: black;
+    }
+  </style>
+</head>
+<body>
+  <h1>ITS CCTV 스트리밍 (HLS)</h1>
+  <div id="videos"></div>
+
+  <script>
+    fetch('/api/cctv')
+      .then(res => res.json())
+      .then(data => {
+        console.log(data)
+        const container = document.getElementById('videos');
+        data.forEach((item, i) => {
+          const box = document.createElement('div');
+          const videoId = `video-${i}`;
+          box.innerHTML = `
+            <h3>${item.cctvname}</h3>
+            <video id="${videoId}" controls autoplay muted playsinline></video>
+          `;
+          container.appendChild(box);
+
+          const video = document.getElementById(videoId);
+          const src = item.cctvurl + '/playlist.m3u8';
+          if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(src);
+            hls.attachMedia(video);
+          } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = src;
+          }
+        });
+      });
+  </script>
+</body>
+</html>
